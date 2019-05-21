@@ -4,7 +4,7 @@
 type: runtime
 
 # script executed on startup (default: null)
-startup: null
+startup: go get github.com/labstack/echo
 
 # use external databases (default: false)
 use_mongodb: false
