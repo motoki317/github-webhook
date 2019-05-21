@@ -1,7 +1,5 @@
 module github.com/motoki317/github-webhook
 
-go 1.11
-
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/labstack/echo v3.3.10+incompatible
