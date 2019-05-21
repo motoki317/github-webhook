@@ -16,7 +16,8 @@ import (
 // MakeWebhookHandler WebhookHandlerを返します
 func MakeWebhookHandler() func(c echo.Context) error {
 	return func(c echo.Context) error {
-		event := c.Request().Header.Get("X-GitHub-Event")
+		event := c.Request().Header.Get("x-github-event")
+		fmt.Println("Received %s event", event)
 		switch event {
 		case "":
 			return c.NoContent(http.StatusBadRequest)
@@ -88,10 +89,11 @@ func pushHandler(c echo.Context) error {
 
 	message := fmt.Sprintf("### [[%s](%s)] %v new ", payload.Repository.Name, payload.Repository.URL, len(payload.Commits))
 	if len(payload.Commits) == 1 {
-		message += " commit\n"
+		message += " commit"
 	} else {
-		message += " commits\n"
+		message += " commits"
 	}
+	message += fmt.Sprintf(" to %s\n", payload.Ref)
 	for _, commit := range payload.Commits {
 		message += fmt.Sprintf("[`%s`](%s) : %s - `%s` @ %s\n", commit.ID[:6], commit.URL, commit.Message, commit.Author.Name, commit.Timestamp.Format("2006/01/02 15:04:05"))
 	}
