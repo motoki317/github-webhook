@@ -22,7 +22,7 @@ entrypoint: "go run main.go"
 http_proxy: null
 
 # which port to expose <array or int> (default: [])
-expose: [8080]
+expose: [10900]
 
 # enviromnent variables passed to docker container (default: {})
 envs: {}
