@@ -42,7 +42,7 @@ func postMessage(c echo.Context, message string) error {
 		return err
 	}
 
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+	req.Header.Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
 	req.Header.Set("X-TRAQ-Signature", generateSignature(message))
 
 	client := &http.Client{}
