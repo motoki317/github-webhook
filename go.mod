@@ -1,5 +1,5 @@
 module git.trapti.tech/toki/github-webhook
 
-import (
+require (
     github.com/labstack/echo
 )
