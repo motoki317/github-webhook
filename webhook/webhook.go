@@ -17,7 +17,7 @@ import (
 func MakeWebhookHandler() func(c echo.Context) error {
 	return func(c echo.Context) error {
 		event := c.Request().Header.Get("x-github-event")
-		fmt.Println("Received %s event", event)
+		fmt.Printf("Received %s event", event)
 		switch event {
 		case "":
 			return c.NoContent(http.StatusBadRequest)
@@ -34,8 +34,9 @@ func MakeWebhookHandler() func(c echo.Context) error {
 
 // postMessage Webhookにメッセージを投稿します
 func postMessage(c echo.Context, message string) error {
+	url := "https://q.trap.jp/api/1.0/webhooks/" + os.Getenv("TRAQ_WEBHOOK_ID")
 	req, err := http.NewRequest("POST",
-		"https://q.trap.jp/api/1.0/webhooks/"+os.Getenv("TRAQ_WEBHOOK_ID"),
+		url,
 		strings.NewReader(message))
 	if err != nil {
 		return err
@@ -51,7 +52,7 @@ func postMessage(c echo.Context, message string) error {
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("Message sent! %s", message)
+	fmt.Printf("Message sent to %s! %s", url, message)
 	return c.NoContent(http.StatusNoContent)
 }
 
