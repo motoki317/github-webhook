@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"github.com/motoki317/github-webhook/webhook"
 )
 
 func main() {
@@ -14,6 +15,8 @@ func main() {
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Server successfully started!")
 	})
+
+	e.POST("/webhook", webhook.MakeWebhookHandler())
 
 	e.Start(":10900")
 }
