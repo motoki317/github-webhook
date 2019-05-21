@@ -30,7 +30,7 @@ func MakeWebhookHandler() func(c echo.Context) error {
 }
 
 // postMessage Webhookにメッセージを投稿します
-func postMessage(message string) error {
+func postMessage(c echo.Context, message string) error {
 	req, err := http.NewRequest("POST",
 		"https://q.trap.jp/api/1.0/webhooks/"+os.Getenv("TRAQ_WEBHOOK_ID"),
 		strings.NewReader(message))
@@ -48,7 +48,7 @@ func postMessage(message string) error {
 	}
 	defer resp.Body.Close()
 
-	return err
+	return c.NoContent(http.StatusNoContent)
 }
 
 func generateSignature(message string) string {
@@ -64,7 +64,16 @@ func issuesHandler(c echo.Context) error {
 		return err
 	}
 
-	return postMessage("")
+	switch payload.Action {
+	case "opened":
+		return postMessage(c, "")
+	case "closed":
+		return postMessage(c, "")
+	case "reopened":
+		return postMessage(c, "")
+	default:
+		return c.NoContent(http.StatusNoContent)
+	}
 }
 
 func pushHandler(c echo.Context) error {
@@ -74,7 +83,7 @@ func pushHandler(c echo.Context) error {
 		return err
 	}
 
-	return postMessage("")
+	return postMessage(c, "")
 }
 
 func pullRequestHandler(c echo.Context) error {
@@ -84,5 +93,5 @@ func pullRequestHandler(c echo.Context) error {
 		return err
 	}
 
-	return postMessage("")
+	return postMessage(c, "")
 }
