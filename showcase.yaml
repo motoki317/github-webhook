@@ -12,5 +12,6 @@ startup: |
   make
   cd client
   yarn
+  source env.sh
 
 http_proxy: 10900
