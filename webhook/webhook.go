@@ -103,5 +103,8 @@ func pullRequestHandler(c echo.Context) error {
 		return err
 	}
 
-	return postMessage(c, fmt.Sprintf("### Pull Request Event"))
+	switch payload.Action {
+	default:
+		return c.NoContent(http.StatusNoContent)
+	}
 }
