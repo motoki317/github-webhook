@@ -11,8 +11,8 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
-	e.GET("/ping", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Pong!")
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Server successfully started!")
 	})
 
 	e.Start(":8080")
