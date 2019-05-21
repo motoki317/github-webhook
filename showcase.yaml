@@ -1,7 +1,16 @@
 type: runtime
-startup: ./init.sh
+
 entrypoint: ./main
+startup: |
+  PATH=$PATH:$GOPATH/bin
+  NS=$GOPATH/src/git.trapti.tech/toki
+  REPO=$NS/github-webhook
+  mkdir -p $NS
+  ln -s `pwd`/ $REPO
+  cd $REPO
+  dep ensure -v
+  make
+  cd client
+  yarn
+
 http_proxy: 10900
-expose: [10900]
-branch:
-  master: null

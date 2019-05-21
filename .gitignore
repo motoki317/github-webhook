@@ -13,3 +13,5 @@
 
 github-webhook
 main
+env.sh
+vendor/
