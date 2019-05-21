@@ -98,6 +98,28 @@ type Repository struct {
 	DefaultBranch    string      `json:"default_branch"`
 }
 
+type Commit struct {
+	ID        string    `json:"id"`
+	TreeID    string    `json:"tree_id"`
+	Distinct  bool      `json:"distinct"`
+	Message   string    `json:"message"`
+	Timestamp time.Time `json:"timestamp"`
+	URL       string    `json:"url"`
+	Author    struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+	} `json:"author"`
+	Committer struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+	} `json:"committer"`
+	Added    []interface{} `json:"added"`
+	Removed  []interface{} `json:"removed"`
+	Modified []string      `json:"modified"`
+}
+
 type PayloadIssue struct {
 	Action string `json:"action"`
 	Issue  struct {
@@ -139,16 +161,16 @@ type PayloadIssue struct {
 }
 
 type PayloadPush struct {
-	Ref        string        `json:"ref"`
-	Before     string        `json:"before"`
-	After      string        `json:"after"`
-	Created    bool          `json:"created"`
-	Deleted    bool          `json:"deleted"`
-	Forced     bool          `json:"forced"`
-	BaseRef    interface{}   `json:"base_ref"`
-	Compare    string        `json:"compare"`
-	Commits    []interface{} `json:"commits"`
-	HeadCommit interface{}   `json:"head_commit"`
+	Ref        string      `json:"ref"`
+	Before     string      `json:"before"`
+	After      string      `json:"after"`
+	Created    bool        `json:"created"`
+	Deleted    bool        `json:"deleted"`
+	Forced     bool        `json:"forced"`
+	BaseRef    interface{} `json:"base_ref"`
+	Compare    string      `json:"compare"`
+	Commits    []Commit    `json:"commits"`
+	HeadCommit Commit      `json:"head_commit"`
 	Repository struct {
 		ID               int         `json:"id"`
 		NodeID           string      `json:"node_id"`

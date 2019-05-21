@@ -83,7 +83,12 @@ func pushHandler(c echo.Context) error {
 		return err
 	}
 
-	return postMessage(c, "")
+	message := fmt.Sprintf("### [[%s](%s)] %v new commits\n", payload.Repository.Name, payload.Repository.URL, len(payload.Commits))
+	for _, commit := range payload.Commits {
+		message += fmt.Sprintf("`%s` %s - `%s`\n", commit.ID, commit.Message, commit.Author.Name)
+	}
+
+	return postMessage(c, message)
 }
 
 func pullRequestHandler(c echo.Context) error {
@@ -93,5 +98,5 @@ func pullRequestHandler(c echo.Context) error {
 		return err
 	}
 
-	return postMessage(c, "")
+	return postMessage(c, fmt.Sprintf("### Pull Request Event"))
 }
