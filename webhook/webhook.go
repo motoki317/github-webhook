@@ -66,11 +66,11 @@ func issuesHandler(c echo.Context) error {
 
 	switch payload.Action {
 	case "opened":
-		return postMessage(c, "")
+		return postMessage(c, "### Issue Opened")
 	case "closed":
-		return postMessage(c, "")
+		return postMessage(c, "### Issue Closed")
 	case "reopened":
-		return postMessage(c, "")
+		return postMessage(c, "### Issue Re-opened")
 	default:
 		return c.NoContent(http.StatusNoContent)
 	}
