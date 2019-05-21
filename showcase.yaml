@@ -22,7 +22,7 @@ entrypoint: go run main.go
 http_proxy: 10900
 
 # which port to expose <array or int> (default: [])
-expose: 10900
+expose: [10900]
 
 # enviromnent variables passed to docker container (default: {})
 envs: {}
