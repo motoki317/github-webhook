@@ -88,7 +88,7 @@ func pushHandler(c echo.Context) error {
 		return err
 	}
 
-	message := fmt.Sprintf("### [[%s](%s)] %v new ", payload.Repository.Name, payload.Repository.URL, len(payload.Commits))
+	message := fmt.Sprintf("### [[%s](%s)] %v new", payload.Repository.Name, payload.Repository.URL, len(payload.Commits))
 	if len(payload.Commits) == 1 {
 		message += " commit"
 	} else {
