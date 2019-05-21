@@ -1,7 +1,7 @@
 # <<< common setting >>>
 
 # deploy mode <"static", "runtime", "fcgi-*"> (required)
-type: "runtime"
+type: runtime
 
 # script executed on startup (default: null)
 startup: null
@@ -16,13 +16,13 @@ work_dir: "."
 # <<< runtime only setting >>>
 
 # docker entrypoint command (default: "cat")
-entrypoint: "go run main.go"
+entrypoint: go run main.go
 
 # which port to proxy via http(80) (default: null)
-http_proxy: null
+http_proxy: 10900
 
 # which port to expose <array or int> (default: [])
-expose: [10900]
+expose: 10900
 
 # enviromnent variables passed to docker container (default: {})
 envs: {}
