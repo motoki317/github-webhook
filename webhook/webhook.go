@@ -52,7 +52,11 @@ func postMessage(c echo.Context, message string) error {
 	}
 	defer resp.Body.Close()
 
-	fmt.Printf("Message sent to %s! %s", url, message)
+	response := make([]byte, 512)
+	resp.Body.Read(response)
+
+	fmt.Printf("Message sent to %s, message: %s, response: %s", url, message, response)
+
 	return c.NoContent(http.StatusNoContent)
 }
 
