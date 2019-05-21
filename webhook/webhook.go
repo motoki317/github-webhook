@@ -85,7 +85,7 @@ func pushHandler(c echo.Context) error {
 
 	message := fmt.Sprintf("### [[%s](%s)] %v new commits\n", payload.Repository.Name, payload.Repository.URL, len(payload.Commits))
 	for _, commit := range payload.Commits {
-		message += fmt.Sprintf("`%s` %s - `%s`\n", commit.ID, commit.Message, commit.Author.Name)
+		message += fmt.Sprintf("`[%s](%s)` %s - `%s`\n", commit.ID[:6], commit.URL, commit.Message, commit.Author.Name)
 	}
 
 	return postMessage(c, message)
