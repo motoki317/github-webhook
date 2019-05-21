@@ -24,6 +24,8 @@ func MakeWebhookHandler() func(c echo.Context) error {
 			return issuesHandler(c)
 		case "push":
 			return pushHandler(c)
+		case "pull_request":
+			return pullRequestHandler(c)
 		}
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -48,6 +50,7 @@ func postMessage(c echo.Context, message string) error {
 	}
 	defer resp.Body.Close()
 
+	fmt.Printf("Message sent! %s", message)
 	return c.NoContent(http.StatusNoContent)
 }
 
