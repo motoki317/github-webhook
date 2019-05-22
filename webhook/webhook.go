@@ -17,7 +17,7 @@ import (
 func MakeWebhookHandler() func(c echo.Context) error {
 	return func(c echo.Context) error {
 		event := c.Request().Header.Get("x-github-event")
-		fmt.Printf("Received %s event", event)
+		fmt.Printf("Received %s event\n", event)
 		switch event {
 		case "":
 			return c.NoContent(http.StatusBadRequest)
@@ -55,7 +55,7 @@ func postMessage(c echo.Context, message string) error {
 	response := make([]byte, 512)
 	resp.Body.Read(response)
 
-	fmt.Printf("Message sent to %s, message: %s, response: %s", url, message, response)
+	fmt.Printf("Message sent to %s, message: %s, response: %s\n", url, message, response)
 
 	return c.NoContent(http.StatusNoContent)
 }
@@ -100,7 +100,7 @@ func pushHandler(c echo.Context) error {
 	}
 	message += fmt.Sprintf(" to %s\n", payload.Ref)
 	for _, commit := range payload.Commits {
-		message += fmt.Sprintf("[`%s`](%s) : %s - `%s` @ %s\n", commit.ID[:6], commit.URL, commit.Message, commit.Author.Name, commit.Timestamp.Format("2006/01/02 15:04:05"))
+		message += fmt.Sprintf(":0x%s: [`%s`](%s) : %s - `%s` @ %s\n", commit.ID[:6], commit.ID[:6], commit.URL, commit.Message, commit.Author.Name, commit.Timestamp.Format("2006/01/02 15:04:05"))
 	}
 
 	return postMessage(c, message)
