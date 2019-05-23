@@ -15,4 +15,4 @@ github-webhook
 main
 env.sh
 vendor/
-push_example.json
+examples/

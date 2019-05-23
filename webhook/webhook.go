@@ -73,16 +73,18 @@ func issuesHandler(c echo.Context) error {
 		return err
 	}
 
+	message := fmt.Sprintf("### %s Issue %s: [%s](%s)\n", buildRepositoryBase(payload.Repository), payload.Action, payload.Issue.Title, payload.Issue.URL)
 	switch payload.Action {
 	case "opened":
-		return postMessage(c, "### Issue Opened")
+		message += payload.Issue.Body
+	case "deleted":
 	case "closed":
-		return postMessage(c, "### Issue Closed")
 	case "reopened":
-		return postMessage(c, "### Issue Re-opened")
 	default:
-		return c.NoContent(http.StatusNoContent)
+		return nil
 	}
+
+	return postMessage(c, message)
 }
 
 func pushHandler(c echo.Context) error {
@@ -92,7 +94,7 @@ func pushHandler(c echo.Context) error {
 		return err
 	}
 
-	message := fmt.Sprintf("### [[%s](%s)] %v new", payload.Repository.Name, payload.Repository.URL, len(payload.Commits))
+	message := fmt.Sprintf("### %s %v new", buildRepositoryBase(payload.Repository), len(payload.Commits))
 	if len(payload.Commits) == 1 {
 		message += " commit"
 	} else {
@@ -117,4 +119,10 @@ func pullRequestHandler(c echo.Context) error {
 	default:
 		return c.NoContent(http.StatusNoContent)
 	}
+}
+
+// buildRepositoryBase Repositoryのベースメッセージを作成します
+// 例: [[github-webhook](URL)]
+func buildRepositoryBase(repo mode.Repository) string {
+	return fmt.Sprintf("### [[%s](%s)]", repo.Name, repo.URL)
 }
