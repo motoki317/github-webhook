@@ -7,4 +7,4 @@ dev:
 
 .PHONY: init
 init:
-	dep ensure
+	go mod download

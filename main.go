@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -18,5 +20,11 @@ func main() {
 
 	e.POST("/webhook", webhook.MakeWebhookHandler())
 
-	e.Start(":10900")
+	port := os.Getenv("WEBHOOK_PORT")
+	if port == "" {
+		log.Println("Env-var WEBHOOK_PORT empty! Setting default port to 8090.")
+		port = "8090"
+	}
+
+	log.Fatal(e.Start(":" + port))
 }
