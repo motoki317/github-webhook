@@ -34,7 +34,7 @@ func MakeWebhookHandler() func(c echo.Context) error {
 
 // postMessage Webhookにメッセージを投稿します
 func postMessage(c echo.Context, message string) error {
-	url := "https://q.trap.jp/api/1.0/webhooks/" + os.Getenv("TRAQ_WEBHOOK_ID")
+	url := "https://q.trap.jp/api/v3/webhooks/" + os.Getenv("TRAQ_WEBHOOK_ID")
 	req, err := http.NewRequest("POST",
 		url,
 		strings.NewReader(message))
