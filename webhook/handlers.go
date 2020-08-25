@@ -83,7 +83,7 @@ func issuesHandler(payload github.IssuesPayload) error {
 		message += payload.Issue.Body
 	}
 
-	return nil
+	return postMessage(message)
 }
 
 func issueCommentHandler(payload github.IssueCommentPayload) error {
@@ -149,7 +149,7 @@ func pushHandler(payload github.PushPayload) error {
 			formattedTime)
 	}
 
-	return nil
+	return postMessage(message)
 }
 
 func pullRequestHandler(payload github.PullRequestPayload) error {
