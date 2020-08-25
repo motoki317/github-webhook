@@ -122,20 +122,57 @@ func pullRequestHandler(payload github.PullRequestPayload) error {
 		return nil
 	}
 
+	prName := fmt.Sprintf("[#%d %s](%s)", payload.PullRequest.Number, payload.PullRequest.Title, payload.PullRequest.HTMLURL)
 	message := fmt.Sprintf(
-		"### :%s: [[%s](%s)] Pull Request %s by `%s`: [%s](%s)\n",
+		"### :%s: [[%s](%s)] Pull Request %s %s by `%s`\n",
 		icon,
 		payload.Repository.Name, payload.Repository.HTMLURL,
+		prName,
 		strings.Title(action),
-		payload.Sender.Login,
-		payload.PullRequest.Title,
-		payload.PullRequest.HTMLURL)
+		payload.Sender.Login)
 
 	// send pull request body only on the first open
 	if payload.Action == "opened" {
 		message += "\n---\n"
 		message += payload.PullRequest.Body
 	}
+
+	return postMessage(message)
+}
+
+func pullRequestReviewHandler(payload github.PullRequestReviewPayload) error {
+	if payload.Action != "submitted" {
+		return nil
+	}
+
+	var action string
+	var icon string
+	switch payload.Review.State {
+	case "approved":
+		action = "approved"
+		icon = icons.PullRequestApproved
+	case "commented":
+		action = "commented"
+		icon = icons.Comment
+	case "changes_requested":
+		action = "changes requested"
+		icon = icons.Comment
+	default:
+		return nil
+	}
+
+	prName := fmt.Sprintf("[#%d %s](%s)", payload.PullRequest.Number, payload.PullRequest.Title, payload.PullRequest.HTMLURL)
+	message := fmt.Sprintf(
+		"### :%s: [[%s](%s)] Pull Request %s %s by `%s`\n"+
+			"\n"+
+			"---\n"+
+			"%s",
+		icon,
+		payload.Repository.Name, payload.Repository.HTMLURL,
+		prName,
+		strings.Title(action),
+		payload.Sender.Login,
+		payload.Review.Body)
 
 	return postMessage(message)
 }

@@ -40,6 +40,9 @@ func MakeWebhookHandler(githubSecret string) func(c echo.Context) error {
 			case github.PullRequestPayload:
 				payloadType = "pull request"
 				err = pullRequestHandler(payload.(github.PullRequestPayload))
+			case github.PullRequestReviewPayload:
+				payloadType = "pull request review"
+				err = pullRequestReviewHandler(payload.(github.PullRequestReviewPayload))
 			}
 
 			log.Printf("Received event %s\n", payloadType)
