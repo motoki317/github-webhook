@@ -3,7 +3,16 @@ package webhook
 import (
 	"gopkg.in/go-playground/webhooks.v5/github"
 	"strings"
+	"time"
 )
+
+func formatTime(from string, format string) (string, error) {
+	t, err := time.Parse("2006-01-02T15:04:05-07:00", from)
+	if err != nil {
+		return "", err
+	}
+	return t.Format(format), nil
+}
 
 func getAssigneeNames(payload interface{}) (ret string) {
 	var assignees []*github.Assignee

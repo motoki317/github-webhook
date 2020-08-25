@@ -5,7 +5,6 @@ import (
 	"github.com/motoki317/github-webhook/icons"
 	"gopkg.in/go-playground/webhooks.v5/github"
 	"strings"
-	"time"
 )
 
 func issuesHandler(payload github.IssuesPayload) error {
@@ -136,7 +135,7 @@ func pushHandler(payload github.PushPayload) error {
 	message += "\n---\n"
 
 	for _, commit := range payload.Commits {
-		formattedTime, err := formatTimeISO8601(commit.Timestamp, "2006/01/02 15:04:05")
+		formattedTime, err := formatTime(commit.Timestamp, "2006/01/02 15:04:05")
 		if err != nil {
 			return err
 		}
@@ -288,12 +287,4 @@ func pullRequestReviewHandler(payload github.PullRequestReviewPayload) error {
 	message += payload.Review.Body
 
 	return postMessage(message)
-}
-
-func formatTimeISO8601(from string, format string) (string, error) {
-	t, err := time.Parse("2006-01-02T15:04:05Z", from)
-	if err != nil {
-		return "", err
-	}
-	return t.Format(format), nil
 }
