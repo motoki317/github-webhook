@@ -13,26 +13,72 @@ func issuesHandler(payload github.IssuesPayload) error {
 	switch payload.Action {
 	case "opened":
 		icon = icons.IssueOpened
+	case "edited":
+		icon = icons.Edit
 	case "deleted":
 		icon = icons.IssueClosed
 	case "closed":
 		icon = icons.IssueClosed
 	case "reopened":
 		icon = icons.IssueOpened
+	case "pinned":
+		icon = icons.Pin
+	case "unpinned":
+		icon = icons.Pin
+	case "labeled":
+		icon = icons.Tag
+	case "unlabeled":
+		icon = icons.Tag
+	case "locked":
+		icon = icons.Lock
+	case "unlocked":
+		icon = icons.Unlock
+	case "transferred":
+		icon = icons.Transfer
+	case "milestoned":
+		icon = icons.Milestone
+	case "demilestoned":
+		icon = icons.Milestone
+	case "assigned":
+		icon = icons.Assignment
+	case "unassigned":
+		icon = icons.Assignment
 	default:
 		return nil
 	}
 
 	issueName := fmt.Sprintf("[#%d %s](%s)", payload.Issue.Number, payload.Issue.Title, payload.Issue.HTMLURL)
-	message := fmt.Sprintf(
-		"### :%s: [[%s](%s)] Issue %s %s by `%s`\n",
-		icon,
-		payload.Repository.Name, payload.Repository.HTMLURL,
-		issueName,
-		strings.Title(payload.Action),
-		payload.Sender.Login)
+	var message string
+	switch payload.Action {
+	case "assigned":
+		fallthrough
+	case "unassigned":
+		message = fmt.Sprintf(
+			"### :%s: [[%s](%s)] Issue %s %s to `%s` by `%s`\n",
+			icon,
+			payload.Repository.Name, payload.Repository.HTMLURL,
+			issueName,
+			strings.Title(payload.Action),
+			payload.Assignee.Login,
+			payload.Sender.Login)
+	default:
+		message = fmt.Sprintf(
+			"### :%s: [[%s](%s)] Issue %s %s by `%s`\n",
+			icon,
+			payload.Repository.Name, payload.Repository.HTMLURL,
+			issueName,
+			strings.Title(payload.Action),
+			payload.Sender.Login)
+	}
 
-	if payload.Action == "opened" {
+	if assignees := getAssigneeNames(payload); assignees != "" {
+		message += "Assignees: " + assignees + "\n"
+	}
+	if labels := getLabelNames(payload); labels != "" {
+		message += "Labels: " + labels + "\n"
+	}
+
+	if payload.Action == "opened" || payload.Action == "edited" {
 		message += "\n---\n"
 		message += payload.Issue.Body
 	}
@@ -52,7 +98,14 @@ func issueCommentHandler(payload github.IssueCommentPayload) error {
 		payload.Sender.Login,
 		issueName)
 
-	if payload.Action == "created" {
+	if assignees := getAssigneeNames(payload); assignees != "" {
+		message += "Assignees: " + assignees + "\n"
+	}
+	if labels := getLabelNames(payload); labels != "" {
+		message += "Labels: " + labels + "\n"
+	}
+
+	if payload.Action == "created" || payload.Action == "edited" {
 		message += "\n---\n"
 		message += payload.Comment.Body
 	}
@@ -101,12 +154,13 @@ func pushHandler(payload github.PushPayload) error {
 
 func pullRequestHandler(payload github.PullRequestPayload) error {
 	// If action == "closed" and Merged is true, then the pull request was merged
-	var action string
+	action := payload.Action
 	var icon string
 	switch payload.Action {
 	case "opened":
-		action = payload.Action
 		icon = icons.PullRequestOpened
+	case "edited":
+		icon = icons.Edit
 	case "closed":
 		if payload.PullRequest.Merged {
 			action = "merged"
@@ -116,23 +170,79 @@ func pullRequestHandler(payload github.PullRequestPayload) error {
 			icon = icons.PullRequestClosed
 		}
 	case "reopened":
-		action = payload.Action
 		icon = icons.PullRequestOpened
+	case "assigned":
+		icon = icons.Assignment
+	case "unassigned":
+		icon = icons.Assignment
+	case "review_requested":
+		action = "review requested"
+		icon = icons.Eyes
+	case "review_request_removed":
+		action = "review request removed"
+		icon = icons.Eyes
+	case "ready_for_review":
+		action = "marked as ready for review"
+		icon = icons.Eyes
+	case "labeled":
+		icon = icons.Tag
+	case "unlabeled":
+		icon = icons.Tag
+	// case "synchronize": on push event
+	case "locked":
+		icon = icons.Lock
+	case "unlocked":
+		icon = icons.Unlock
 	default:
 		return nil
 	}
 
 	prName := fmt.Sprintf("[#%d %s](%s)", payload.PullRequest.Number, payload.PullRequest.Title, payload.PullRequest.HTMLURL)
-	message := fmt.Sprintf(
-		"### :%s: [[%s](%s)] Pull Request %s %s by `%s`\n",
-		icon,
-		payload.Repository.Name, payload.Repository.HTMLURL,
-		prName,
-		strings.Title(action),
-		payload.Sender.Login)
 
-	// send pull request body only on the first open
-	if payload.Action == "opened" {
+	var message string
+	switch payload.Action {
+	case "assigned":
+		fallthrough
+	case "unassigned":
+		message = fmt.Sprintf(
+			"### :%s: [[%s](%s)] Pull Request %s to `%s` %s by `%s`\n",
+			icon,
+			payload.Repository.Name, payload.Repository.HTMLURL,
+			prName,
+			payload.Assignee.Login,
+			strings.Title(action),
+			payload.Sender.Login)
+	case "review_requested":
+		message = fmt.Sprintf(
+			"### :%s: [[%s](%s)] Pull Request %s to `%s` %s by `%s`\n",
+			icon,
+			payload.Repository.Name, payload.Repository.HTMLURL,
+			prName,
+			payload.RequestedReviewer.Login,
+			strings.Title(action),
+			payload.Sender.Login)
+	default:
+		message = fmt.Sprintf(
+			"### :%s: [[%s](%s)] Pull Request %s %s by `%s`\n",
+			icon,
+			payload.Repository.Name, payload.Repository.HTMLURL,
+			prName,
+			strings.Title(action),
+			payload.Sender.Login)
+	}
+
+	if assignees := getAssigneeNames(payload); assignees != "" {
+		message += "Assignees: " + assignees + "\n"
+	}
+	if reviewers := getRequestedReviewers(payload); reviewers != "" {
+		message += "Reviewers: " + reviewers + "\n"
+	}
+	if labels := getLabelNames(payload); labels != "" {
+		message += "Labels: " + labels + "\n"
+	}
+
+	// send pull request body only on the first open or on edited
+	if payload.Action == "opened" || payload.Action == "edited" {
 		message += "\n---\n"
 		message += payload.PullRequest.Body
 	}
@@ -163,16 +273,19 @@ func pullRequestReviewHandler(payload github.PullRequestReviewPayload) error {
 
 	prName := fmt.Sprintf("[#%d %s](%s)", payload.PullRequest.Number, payload.PullRequest.Title, payload.PullRequest.HTMLURL)
 	message := fmt.Sprintf(
-		"### :%s: [[%s](%s)] Pull Request %s %s by `%s`\n"+
-			"\n"+
-			"---\n"+
-			"%s",
+		"### :%s: [[%s](%s)] Pull Request %s %s by `%s`\n",
 		icon,
 		payload.Repository.Name, payload.Repository.HTMLURL,
 		prName,
 		strings.Title(action),
-		payload.Sender.Login,
-		payload.Review.Body)
+		payload.Sender.Login)
+
+	if assignees := getAssigneeNames(payload); assignees != "" {
+		message += "Assignees: " + assignees + "\n"
+	}
+
+	message += "\n---\n"
+	message += payload.Review.Body
 
 	return postMessage(message)
 }
