@@ -19,8 +19,14 @@ func MakeWebhookHandler(githubSecret string) func(c echo.Context) error {
 	hook, _ := github.New(github.Options.Secret(githubSecret))
 
 	return func(c echo.Context) error {
-		payload, err := hook.Parse(c.Request(), github.ReleaseEvent, github.PullRequestEvent)
+		payload, err := hook.Parse(c.Request(),
+			github.IssuesEvent,
+			github.IssueCommentEvent,
+			github.PushEvent,
+			github.PullRequestEvent,
+			github.PullRequestReviewEvent)
 		if err != nil {
+			log.Println("Received invalid payload")
 			return c.NoContent(http.StatusBadRequest)
 		}
 
