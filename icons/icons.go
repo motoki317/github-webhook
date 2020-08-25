@@ -9,4 +9,5 @@ const (
 	Pushed            = "git_push_repo"
 	Tag               = "git_tag"
 	Milestone         = "git_milestone"
+	Comment           = "comment"
 )

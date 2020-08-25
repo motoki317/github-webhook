@@ -31,6 +31,9 @@ func MakeWebhookHandler(githubSecret string) func(c echo.Context) error {
 			case github.IssuesPayload:
 				payloadType = "issues"
 				err = issuesHandler(payload.(github.IssuesPayload))
+			case github.IssueCommentPayload:
+				payloadType = "issue comment"
+				err = issueCommentHandler(payload.(github.IssueCommentPayload))
 			case github.PushPayload:
 				payloadType = "push"
 				err = pushHandler(payload.(github.PushPayload))
@@ -67,10 +70,12 @@ func postMessage(message string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	response := make([]byte, 512)
-	resp.Body.Read(response)
+	_, _ = resp.Body.Read(response)
 
 	fmt.Printf("Message sent to %s, message: %s, response: %s\n", url, message, response)
 	return nil

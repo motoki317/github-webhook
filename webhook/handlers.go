@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/motoki317/github-webhook/icons"
 	"gopkg.in/go-playground/webhooks.v5/github"
+	"strings"
 	"time"
 )
 
@@ -22,14 +23,14 @@ func issuesHandler(payload github.IssuesPayload) error {
 		return nil
 	}
 
+	issueName := fmt.Sprintf("[#%d %s](%s)", payload.Issue.Number, payload.Issue.Title, payload.Issue.HTMLURL)
 	message := fmt.Sprintf(
-		"### :%s: [[%s](%s)] Issue %s by `%s`: [%s](%s)\n",
+		"### :%s: [[%s](%s)] Issue %s %s by `%s`\n",
 		icon,
 		payload.Repository.Name, payload.Repository.HTMLURL,
-		payload.Action,
-		payload.Sender.Login,
-		payload.Issue.Title,
-		payload.Issue.HTMLURL)
+		issueName,
+		strings.Title(payload.Action),
+		payload.Sender.Login)
 
 	if payload.Action == "opened" {
 		message += "\n---\n"
@@ -39,24 +40,44 @@ func issuesHandler(payload github.IssuesPayload) error {
 	return nil
 }
 
+func issueCommentHandler(payload github.IssueCommentPayload) error {
+	issueName := fmt.Sprintf("[#%d %s](%s)", payload.Issue.Number, payload.Issue.Title, payload.Issue.HTMLURL)
+	message := fmt.Sprintf(
+		"### :%s: [[%s](%s)] [Issue Comment](%s) %s by `%s`\n"+
+			"%s\n",
+		icons.Comment,
+		payload.Repository.Name, payload.Repository.HTMLURL,
+		payload.Comment.HTMLURL,
+		strings.Title(payload.Action),
+		payload.Sender.Login,
+		issueName)
+
+	if payload.Action == "created" {
+		message += "\n---\n"
+		message += payload.Comment.Body
+	}
+
+	return postMessage(message)
+}
+
 func pushHandler(payload github.PushPayload) error {
 	if len(payload.Commits) == 0 {
 		return nil
 	}
 
 	message := fmt.Sprintf(
-		"### :%s: [[%s](%s)] %v new",
+		"### :%s: [[%s](%s)] %v New",
 		icons.Pushed,
 		payload.Repository.Name, payload.Repository.HTMLURL,
 		len(payload.Commits))
 
 	if len(payload.Commits) == 1 {
-		message += " commit"
+		message += " Commit"
 	} else {
-		message += " commits"
+		message += " Commits"
 	}
 	message += fmt.Sprintf(
-		" to %s by `%s`\n",
+		" to `%s` by `%s`\n",
 		payload.Ref,
 		payload.Sender.Login)
 	message += "\n---\n"
@@ -105,7 +126,7 @@ func pullRequestHandler(payload github.PullRequestPayload) error {
 		"### :%s: [[%s](%s)] Pull Request %s by `%s`: [%s](%s)\n",
 		icon,
 		payload.Repository.Name, payload.Repository.HTMLURL,
-		action,
+		strings.Title(action),
 		payload.Sender.Login,
 		payload.PullRequest.Title,
 		payload.PullRequest.HTMLURL)
