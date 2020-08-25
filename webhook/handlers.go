@@ -88,7 +88,7 @@ func issuesHandler(payload github.IssuesPayload) error {
 func issueCommentHandler(payload github.IssueCommentPayload) error {
 	issueName := fmt.Sprintf("[#%d %s](%s)", payload.Issue.Number, payload.Issue.Title, payload.Issue.HTMLURL)
 	message := fmt.Sprintf(
-		"### :%s: [[%s](%s)] [Issue Comment](%s) %s by `%s`\n"+
+		"### :%s: [[%s](%s)] [Comment](%s) %s by `%s`\n"+
 			"%s\n",
 		icons.Comment,
 		payload.Repository.Name, payload.Repository.HTMLURL,
