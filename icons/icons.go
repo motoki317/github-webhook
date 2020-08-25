@@ -10,7 +10,6 @@ const (
 	Pushed              = "git_push_repo"
 	Assignment          = "bust_in_silhouette"
 	Edit                = "pencil"
-	Eyes                = "eyes"
 	Tag                 = "git_tag"
 	Milestone           = "git_milestone"
 	Lock                = "lock"

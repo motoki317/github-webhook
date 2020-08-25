@@ -177,13 +177,13 @@ func pullRequestHandler(payload github.PullRequestPayload) error {
 		icon = icons.Assignment
 	case "review_requested":
 		action = "review requested"
-		icon = icons.Eyes
+		icon = icons.Assignment
 	case "review_request_removed":
 		action = "review request removed"
-		icon = icons.Eyes
+		icon = icons.Assignment
 	case "ready_for_review":
 		action = "marked as ready for review"
-		icon = icons.Eyes
+		icon = icons.Assignment
 	case "labeled":
 		icon = icons.Tag
 	case "unlabeled":
@@ -205,21 +205,21 @@ func pullRequestHandler(payload github.PullRequestPayload) error {
 		fallthrough
 	case "unassigned":
 		message = fmt.Sprintf(
-			"### :%s: [[%s](%s)] Pull Request %s to `%s` %s by `%s`\n",
+			"### :%s: [[%s](%s)] Pull Request %s %s to `%s` by `%s`\n",
 			icon,
 			payload.Repository.Name, payload.Repository.HTMLURL,
 			prName,
-			payload.Assignee.Login,
 			strings.Title(action),
+			payload.Assignee.Login,
 			payload.Sender.Login)
 	case "review_requested":
 		message = fmt.Sprintf(
-			"### :%s: [[%s](%s)] Pull Request %s to `%s` %s by `%s`\n",
+			"### :%s: [[%s](%s)] Pull Request %s %s to `%s` by `%s`\n",
 			icon,
 			payload.Repository.Name, payload.Repository.HTMLURL,
 			prName,
-			payload.RequestedReviewer.Login,
 			strings.Title(action),
+			payload.RequestedReviewer.Login,
 			payload.Sender.Login)
 	default:
 		message = fmt.Sprintf(
