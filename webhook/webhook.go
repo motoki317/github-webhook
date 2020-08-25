@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/motoki317/github-webhook/model"
 )
 
 // MakeWebhookHandler WebhookHandlerを返します
@@ -64,72 +63,4 @@ func generateSignature(message string) string {
 	mac := hmac.New(sha1.New, []byte(os.Getenv("TRAQ_WEBHOOK_SECRET")))
 	_, _ = mac.Write([]byte(message))
 	return hex.EncodeToString(mac.Sum(nil))
-}
-
-func issuesHandler(c echo.Context) error {
-	payload := &model.PayloadIssue{}
-	if err := c.Bind(payload); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	message := fmt.Sprintf("### %s Issue %s by `%s`: [%s](%s)\n", buildRepositoryBase(payload.Repository), payload.Action, payload.Sender.Login, payload.Issue.Title, payload.Issue.HTMLURL)
-	switch payload.Action {
-	case "opened":
-		message += payload.Issue.Body
-	case "deleted":
-	case "closed":
-	case "reopened":
-	default:
-		return c.NoContent(http.StatusNoContent)
-	}
-
-	return postMessage(c, message)
-}
-
-func pushHandler(c echo.Context) error {
-	payload := &model.PayloadPush{}
-	if err := c.Bind(payload); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	message := fmt.Sprintf("### [[%s](%s)] %v new", payload.Repository.Name, payload.Repository.HTMLURL, len(payload.Commits))
-	if len(payload.Commits) == 1 {
-		message += " commit"
-	} else {
-		message += " commits"
-	}
-	message += fmt.Sprintf(" to %s\n", payload.Ref)
-	for _, commit := range payload.Commits {
-		message += fmt.Sprintf(":0x%s: [`%s`](%s) : %s - `%s` @ %s\n", commit.ID[:6], commit.ID[:6], commit.URL, commit.Message, commit.Author.Name, commit.Timestamp.Format("2006/01/02 15:04:05"))
-	}
-
-	return postMessage(c, message)
-}
-
-func pullRequestHandler(c echo.Context) error {
-	payload := &model.PayloadPullRequest{}
-	if err := c.Bind(payload); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	message := fmt.Sprintf("### %s Pull Request %s by `%s`: [%s](%s)\n", buildRepositoryBase(payload.Repository), payload.Action, payload.Sender.Login, payload.PullRequest.Title, payload.PullRequest.HTMLURL)
-	switch payload.Action {
-	case "opened":
-		message += payload.PullRequest.Body
-	case "closed":
-	case "reopened":
-	default:
-		return c.NoContent(http.StatusNoContent)
-	}
-
-	return postMessage(c, message)
-}
-
-// buildRepositoryBase Repositoryのベースメッセージを作成します
-// 例: [[github-webhook](URL)]
-func buildRepositoryBase(repo model.Repository) string {
-	return fmt.Sprintf("[[%s](%s)]", repo.Name, repo.HTMLURL)
 }
