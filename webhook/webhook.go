@@ -32,26 +32,37 @@ func MakeWebhookHandler(githubSecret string) func(c echo.Context) error {
 
 		go func() {
 			var payloadType string
+			var action string
 			var err error
 			switch payload.(type) {
 			case github.IssuesPayload:
 				payloadType = "issues"
-				err = issuesHandler(payload.(github.IssuesPayload))
+				payload := payload.(github.IssuesPayload)
+				action = payload.Action
+				err = issuesHandler(payload)
 			case github.IssueCommentPayload:
 				payloadType = "issue comment"
-				err = issueCommentHandler(payload.(github.IssueCommentPayload))
+				payload := payload.(github.IssueCommentPayload)
+				action = payload.Action
+				err = issueCommentHandler(payload)
 			case github.PushPayload:
 				payloadType = "push"
-				err = pushHandler(payload.(github.PushPayload))
+				payload := payload.(github.PushPayload)
+				action = "push"
+				err = pushHandler(payload)
 			case github.PullRequestPayload:
 				payloadType = "pull request"
-				err = pullRequestHandler(payload.(github.PullRequestPayload))
+				payload := payload.(github.PullRequestPayload)
+				action = payload.Action
+				err = pullRequestHandler(payload)
 			case github.PullRequestReviewPayload:
 				payloadType = "pull request review"
-				err = pullRequestReviewHandler(payload.(github.PullRequestReviewPayload))
+				payload := payload.(github.PullRequestReviewPayload)
+				action = payload.Action
+				err = pullRequestReviewHandler(payload)
 			}
 
-			log.Printf("Received event %s\n", payloadType)
+			log.Printf("Received event %s, action %s\n", payloadType, action)
 			if err != nil {
 				log.Printf("Error: %s\n", err.Error())
 			}
