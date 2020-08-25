@@ -18,7 +18,7 @@ func main() {
 		return c.String(http.StatusOK, "Server successfully started!")
 	})
 
-	e.POST("/webhook", webhook.MakeWebhookHandler())
+	e.POST("/webhook", webhook.MakeWebhookHandler(os.Getenv("GITHUB_SECRET")))
 
 	port := os.Getenv("WEBHOOK_PORT")
 	if port == "" {

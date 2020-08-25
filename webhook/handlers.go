@@ -2,19 +2,12 @@ package webhook
 
 import (
 	"fmt"
-	"github.com/labstack/echo"
 	"github.com/motoki317/github-webhook/icons"
-	"github.com/motoki317/github-webhook/model"
-	"net/http"
+	"gopkg.in/go-playground/webhooks.v5/github"
+	"time"
 )
 
-func issuesHandler(c echo.Context) error {
-	payload := &model.PayloadIssue{}
-	if err := c.Bind(payload); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
+func issuesHandler(payload github.IssuesPayload) error {
 	var icon string
 	switch payload.Action {
 	case "opened":
@@ -26,13 +19,13 @@ func issuesHandler(c echo.Context) error {
 	case "reopened":
 		icon = icons.IssueOpened
 	default:
-		return c.NoContent(http.StatusNoContent)
+		return nil
 	}
 
 	message := fmt.Sprintf(
-		"### :%s: %s Issue %s by `%s`: [%s](%s)\n",
+		"### :%s: [[%s](%s)] Issue %s by `%s`: [%s](%s)\n",
 		icon,
-		buildRepositoryBase(payload.Repository),
+		payload.Repository.Name, payload.Repository.HTMLURL,
 		payload.Action,
 		payload.Sender.Login,
 		payload.Issue.Title,
@@ -43,25 +36,18 @@ func issuesHandler(c echo.Context) error {
 		message += payload.Issue.Body
 	}
 
-	return postMessage(c, message)
+	return nil
 }
 
-func pushHandler(c echo.Context) error {
-	payload := &model.PayloadPush{}
-	if err := c.Bind(payload); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
+func pushHandler(payload github.PushPayload) error {
 	if len(payload.Commits) == 0 {
-		return c.NoContent(http.StatusNoContent)
+		return nil
 	}
 
 	message := fmt.Sprintf(
 		"### :%s: [[%s](%s)] %v new",
 		icons.Pushed,
-		payload.Repository.Name,
-		payload.Repository.HTMLURL,
+		payload.Repository.Name, payload.Repository.HTMLURL,
 		len(payload.Commits))
 
 	if len(payload.Commits) == 1 {
@@ -69,23 +55,30 @@ func pushHandler(c echo.Context) error {
 	} else {
 		message += " commits"
 	}
-	message += fmt.Sprintf(" to %s\n", payload.Ref)
+	message += fmt.Sprintf(
+		" to %s by `%s`\n",
+		payload.Ref,
+		payload.Sender.Login)
 	message += "\n---\n"
 
 	for _, commit := range payload.Commits {
-		message += fmt.Sprintf(":0x%s: [`%s`](%s) : %s - `%s` @ %s\n", commit.ID[:6], commit.ID[:6], commit.URL, commit.Message, commit.Author.Name, commit.Timestamp.Format("2006/01/02 15:04:05"))
+		formattedTime, err := formatTimeISO8601(commit.Timestamp, "2006/01/02 15:04:05")
+		if err != nil {
+			return err
+		}
+		message += fmt.Sprintf(
+			":0x%s: [`%s`](%s) : %s - `%s` @ %s\n",
+			commit.ID[:6], commit.ID[:6],
+			commit.URL,
+			commit.Message,
+			commit.Author.Name,
+			formattedTime)
 	}
 
-	return postMessage(c, message)
+	return nil
 }
 
-func pullRequestHandler(c echo.Context) error {
-	payload := &model.PayloadPullRequest{}
-	if err := c.Bind(payload); err != nil {
-		fmt.Println(err)
-		return err
-	}
-
+func pullRequestHandler(payload github.PullRequestPayload) error {
 	// If action == "closed" and Merged is true, then the pull request was merged
 	var action string
 	var icon string
@@ -105,13 +98,13 @@ func pullRequestHandler(c echo.Context) error {
 		action = payload.Action
 		icon = icons.PullRequestOpened
 	default:
-		return c.NoContent(http.StatusNoContent)
+		return nil
 	}
 
 	message := fmt.Sprintf(
-		"### :%s: %s Pull Request %s by `%s`: [%s](%s)\n",
+		"### :%s: [[%s](%s)] Pull Request %s by `%s`: [%s](%s)\n",
 		icon,
-		buildRepositoryBase(payload.Repository),
+		payload.Repository.Name, payload.Repository.HTMLURL,
 		action,
 		payload.Sender.Login,
 		payload.PullRequest.Title,
@@ -123,11 +116,13 @@ func pullRequestHandler(c echo.Context) error {
 		message += payload.PullRequest.Body
 	}
 
-	return postMessage(c, message)
+	return postMessage(message)
 }
 
-// buildRepositoryBase Repositoryのベースメッセージを作成します
-// 例: [[github-webhook](URL)]
-func buildRepositoryBase(repo model.Repository) string {
-	return fmt.Sprintf("[[%s](%s)]", repo.Name, repo.HTMLURL)
+func formatTimeISO8601(from string, format string) (string, error) {
+	t, err := time.Parse("2006-01-02T15:04:05Z", from)
+	if err != nil {
+		return "", err
+	}
+	return t.Format(format), nil
 }

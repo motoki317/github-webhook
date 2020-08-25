@@ -8,4 +8,5 @@ require (
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf // indirect
+	gopkg.in/go-playground/webhooks.v5 v5.15.0
 )

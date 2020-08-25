@@ -5,34 +5,52 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/labstack/echo"
+	"gopkg.in/go-playground/webhooks.v5/github"
 )
 
 // MakeWebhookHandler WebhookHandlerを返します
-func MakeWebhookHandler() func(c echo.Context) error {
+func MakeWebhookHandler(githubSecret string) func(c echo.Context) error {
+	hook, _ := github.New(github.Options.Secret(githubSecret))
+
 	return func(c echo.Context) error {
-		event := c.Request().Header.Get("x-github-event")
-		fmt.Printf("Received %s event\n", event)
-		switch event {
-		case "":
+		payload, err := hook.Parse(c.Request(), github.ReleaseEvent, github.PullRequestEvent)
+		if err != nil {
 			return c.NoContent(http.StatusBadRequest)
-		case "issues":
-			return issuesHandler(c)
-		case "push":
-			return pushHandler(c)
-		case "pull_request":
-			return pullRequestHandler(c)
 		}
+
+		go func() {
+			var payloadType string
+			var err error
+			switch payload.(type) {
+			case github.IssuesPayload:
+				payloadType = "issues"
+				err = issuesHandler(payload.(github.IssuesPayload))
+			case github.PushPayload:
+				payloadType = "push"
+				err = pushHandler(payload.(github.PushPayload))
+			case github.PullRequestPayload:
+				payloadType = "pull request"
+				err = pullRequestHandler(payload.(github.PullRequestPayload))
+			}
+
+			log.Printf("Received event %s\n", payloadType)
+			if err != nil {
+				log.Printf("Error: %s\n", err.Error())
+			}
+		}()
+
 		return c.NoContent(http.StatusNoContent)
 	}
 }
 
 // postMessage Webhookにメッセージを投稿します
-func postMessage(c echo.Context, message string) error {
+func postMessage(message string) error {
 	url := "https://q.trap.jp/api/v3/webhooks/" + os.Getenv("TRAQ_WEBHOOK_ID")
 	req, err := http.NewRequest("POST",
 		url,
@@ -55,8 +73,7 @@ func postMessage(c echo.Context, message string) error {
 	resp.Body.Read(response)
 
 	fmt.Printf("Message sent to %s, message: %s, response: %s\n", url, message, response)
-
-	return c.NoContent(http.StatusNoContent)
+	return nil
 }
 
 func generateSignature(message string) string {
