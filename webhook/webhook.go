@@ -24,7 +24,8 @@ func MakeWebhookHandler(githubSecret string) func(c echo.Context) error {
 			github.IssueCommentEvent,
 			github.PushEvent,
 			github.PullRequestEvent,
-			github.PullRequestReviewEvent)
+			github.PullRequestReviewEvent,
+			github.PullRequestReviewCommentEvent)
 		if err != nil {
 			log.Println("Received invalid payload")
 			return c.NoContent(http.StatusBadRequest)
@@ -60,6 +61,11 @@ func MakeWebhookHandler(githubSecret string) func(c echo.Context) error {
 				payload := payload.(github.PullRequestReviewPayload)
 				action = payload.Action
 				err = pullRequestReviewHandler(payload)
+			case github.PullRequestReviewCommentPayload:
+				payloadType = "pull request review comment"
+				payload := payload.(github.PullRequestReviewCommentPayload)
+				action = payload.Action
+				err = pullRequestReviewCommentHandler(payload)
 			}
 
 			log.Printf("Received event %s, action %s\n", payloadType, action)

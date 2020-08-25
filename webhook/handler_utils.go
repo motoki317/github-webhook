@@ -35,6 +35,9 @@ func getAssigneeNames(payload interface{}) (ret string) {
 			assignee := assignee
 			assignees = append(assignees, &assignee)
 		}
+	case github.PullRequestReviewCommentPayload:
+		payload := payload.(github.PullRequestReviewCommentPayload)
+		assignees = payload.PullRequest.Assignees
 	default:
 		return
 	}
@@ -80,6 +83,7 @@ func getLabelNames(payload interface{}) (ret string) {
 		payload := payload.(github.PullRequestPayload)
 		labels = payload.PullRequest.Labels
 	// case github.PullRequestReviewPayload:
+	// case github.PullRequestReviewCommentPayload:
 	// no labels
 	default:
 		return

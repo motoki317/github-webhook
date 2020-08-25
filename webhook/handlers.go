@@ -86,11 +86,23 @@ func issuesHandler(payload github.IssuesPayload) error {
 }
 
 func issueCommentHandler(payload github.IssueCommentPayload) error {
+	var icon string
+	switch payload.Action {
+	case "created":
+		icon = icons.Comment
+	case "edited":
+		icon = icons.Edit
+	case "deleted":
+		icon = icons.Retrieved
+	default:
+		return nil
+	}
+
 	issueName := fmt.Sprintf("[#%d %s](%s)", payload.Issue.Number, payload.Issue.Title, payload.Issue.HTMLURL)
 	message := fmt.Sprintf(
 		"### :%s: [[%s](%s)] [Comment](%s) %s by `%s`\n"+
 			"%s\n",
-		icons.Comment,
+		icon,
 		payload.Repository.Name, payload.Repository.HTMLURL,
 		payload.Comment.HTMLURL,
 		strings.Title(payload.Action),
@@ -285,6 +297,40 @@ func pullRequestReviewHandler(payload github.PullRequestReviewPayload) error {
 
 	message += "\n---\n"
 	message += payload.Review.Body
+
+	return postMessage(message)
+}
+
+func pullRequestReviewCommentHandler(payload github.PullRequestReviewCommentPayload) error {
+	var icon string
+	switch payload.Action {
+	case "created":
+		icon = icons.Comment
+	case "edited":
+		icon = icons.Edit
+	case "deleted":
+		icon = icons.Retrieved
+	default:
+		return nil
+	}
+
+	prName := fmt.Sprintf("[#%d %s](%s)", payload.PullRequest.Number, payload.PullRequest.Title, payload.PullRequest.HTMLURL)
+	message := fmt.Sprintf(
+		"### :%s: [[%s](%s)] [Review Comment](%s) %s by `%s`\n"+
+			"%s\n",
+		icon,
+		payload.Repository.Name, payload.Repository.HTMLURL,
+		payload.Comment.HTMLURL,
+		strings.Title(payload.Action),
+		payload.Sender.Login,
+		prName)
+
+	if assignees := getAssigneeNames(payload); assignees != "" {
+		message += "Assignees: " + assignees + "\n"
+	}
+
+	message += "\n---\n"
+	message += payload.Comment.Body
 
 	return postMessage(message)
 }
