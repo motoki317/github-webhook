@@ -7,11 +7,20 @@ import (
 )
 
 func formatTime(from string, format string) (string, error) {
-	t, err := time.Parse("2006-01-02T15:04:05-07:00", from)
-	if err != nil {
-		return "", err
+	layouts := []string{
+		"2006-01-02T15:04:05-07:00",
+		"2006-01-02T15:04:05Z",
 	}
-	return t.Format(format), nil
+
+	var err error
+	for _, layout := range layouts {
+		var t time.Time
+		t, err = time.Parse(layout, from)
+		if err == nil {
+			return t.Format(format), nil
+		}
+	}
+	return "", err
 }
 
 func getAssigneeNames(payload interface{}) (ret string) {
